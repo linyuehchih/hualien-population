@@ -168,6 +168,9 @@ body.dlg-open{overflow:hidden}
 .near-list .ln b{color:var(--ink);font-weight:700}
 .near-list a.tel{display:inline-block;font-size:1.1rem;font-weight:700;color:var(--accent);margin-right:12px;padding:4px 0}
 .near-list a.nav{display:inline-block;margin-top:6px;font-weight:700;color:var(--accent)}
+.fuqi{margin-top:4px}
+.fuqi b{color:var(--ink)}
+.fuqi-off{margin-top:4px;color:var(--up);font-weight:700}
 ul.notes{margin:0;padding-left:1.2em}
 ul.notes li{margin:8px 0;font-size:.95rem;color:var(--ink2)}
 ul.notes b{color:var(--ink)}
@@ -309,7 +312,7 @@ footer a{color:inherit}
   </section>
 
   <footer>
-    <p>名詞說明：「照顧型據點」包含社區關懷據點、社區長照站、朝陽站、福氣站、伯公站、原住民族文化健康站（文健站）、失智據點；「潛力型據點」平時提供關懷訪視、電話問安，每年辦理 3～6 場健康促進活動，服務量和每週開站的據點不同，所以另外列出、不算進照顧型；「學習型」包含長青大學、樂齡中心、綠色照顧站、銀髮健身俱樂部。文健站服務對象為 55 歲以上原住民長者。休站中的據點不列入計算。原住民族別人數少於 5 人時合併為「其他／未申報」。</p>
+    <p>名詞說明：「照顧型據點」包含社區關懷據點、社區長照站、朝陽站、福氣站、伯公站、原住民族文化健康站（文健站）、失智據點；「潛力型據點」平時提供關懷訪視、電話問安，每年辦理 3～6 場健康促進活動，服務量和每週開站的據點不同，所以另外列出、不算進照顧型；「學習型」包含長青大學、樂齡中心、綠色照顧站、銀髮健身俱樂部。文健站服務對象為 55 歲以上原住民長者。福氣站服務期間為每年 2～11 月，12 月到隔年 1 月為結案核銷期間。休站中的據點不列入計算。原住民族別人數少於 5 人時合併為「其他／未申報」。</p>
     <p>整理：林岳志</p>
   </footer>
 </main>
@@ -341,6 +344,11 @@ const wjSites = v=>v.sites.filter(s=>!s.closed && s.type==='文化健康站');
 const openSites = v=>v.sites.filter(s=>!s.closed);
 const potSites = v=>v.sites.filter(s=>!s.closed && s.group==='潛力型');
 const allPot = ()=>V.flatMap(potSites);
+// 福氣站：服務期間每年 2～11 月，12 月到隔年 1 月是結案核銷期（岳志提供，2026-11-10）
+const fuqiNote = s=>{ if(s.type!=='福氣站') return '';
+  const m=new Date().getMonth()+1, off=(m===12||m===1);
+  return `<div class="small fuqi"><b>服務期間：每年 2～11 月</b>（12 月到隔年 1 月為結案核銷期間）</div>`
+    + (off?'<div class="small fuqi-off">⚠ 現在是核銷期間，可能暫停服務，請先打電話確認</div>':''); };
 const tagOf = s=> s.type==='文化健康站'?['wj','文健站'] : s.group==='潛力型'?['pot','潛力型據點'] : [s.group==='照顧型'?'care':'learn', s.type];
 function metrics(v){
   const a=v.all, d=v.ind, cs=careSites(v).length, wj=wjSites(v).length;
@@ -469,7 +477,7 @@ function renderVillage(){
   else{const cs=careSites(v).length, pn=potSites(v).length; h+=`<p class="small">${cs?`照顧型 ${cs} 處，平均每處對應 ${fmt(Math.round(v.all.e/cs))} 位長輩（全市平均 ${fmt(Math.round(L.city.all.e/V.reduce((s,x)=>s+careSites(x).length,0)))} 位）`:'這個里沒有照顧型據點'}${pn?`；另有潛力型據點 ${pn} 處（每年辦理數場活動，不列入照顧型計算）`:''}</p>`}
   const order={'照顧型':0,'潛力型':1,'學習型':2};
   h+='<ul class="sites">'+[...showSites].sort((a,b)=>order[a.group]-order[b.group]).map(s=>{const [cls,lab]=tagOf(s);
-    return `<li><span class="tag ${cls}">${esc(lab)}</span>${esc(s.name)}${s.perYear?`<div class="small"><b>每年 ${s.perYear} 場</b>健康促進活動，平時提供關懷訪視、電話問安</div>`:''}<div class="small">${esc(s.addr)}</div></li>`}).join('')+'</ul>';
+    return `<li><span class="tag ${cls}">${esc(lab)}</span>${esc(s.name)}${fuqiNote(s)}${s.perYear?`<div class="small"><b>每年 ${s.perYear} 場</b>健康促進活動，平時提供關懷訪視、電話問安</div>`:''}<div class="small">${esc(s.addr)}</div></li>`}).join('')+'</ul>';
   if(!ind && closed.length) h+=`<p class="small">休站中：${closed.map(s=>esc(s.name)).join('、')}</p>`;
   h+='</div>';
   // 右欄：原住民族別 or 歷年
@@ -605,6 +613,7 @@ function showNear(center, label){
       <div class="ln"><b>地址</b>　${esc(s.addr)}</div>
       <div class="ln"><b>電話</b>　${telLinks(s.tel)}</div>
       ${s.hours?`<div class="ln"><b>服務時間</b>　${esc(s.hours)}</div>`:''}
+      ${fuqiNote(s)}
       ${s.perYear?`<div class="ln">平時提供關懷訪視、電話問安</div>`:''}
       ${s.org && s.org!==s.name?`<div class="ln"><b>承辦單位</b>　${esc(s.org)}</div>`:''}
       ${s.loc==='鄰近門牌'?'<div class="small">＊位置依同一條路號碼最接近的門牌估計</div>':''}
