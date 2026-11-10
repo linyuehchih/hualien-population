@@ -94,6 +94,7 @@ ul.sites{list-style:none;margin:0;padding:0}
 ul.sites li{padding:8px 0;border-top:1px solid var(--grid)}
 ul.sites li:first-child{border-top:0}
 .tag{display:inline-block;font-size:.8rem;border-radius:4px;padding:0 6px;margin-right:6px;border:1px solid currentColor;font-weight:700;white-space:nowrap}
+.tag.pot{color:var(--ink2);border-style:dashed}
 .tag.wj{color:var(--tag-wj)} .tag.care{color:var(--tag-care)} .tag.learn{color:var(--tag-learn)}
 .small{font-size:.9rem;color:var(--ink2)}
 .bars .b{display:grid;grid-template-columns:7.5em 1fr 4em;gap:8px;align-items:center;font-size:.95rem;margin:4px 0}
@@ -204,6 +205,8 @@ footer a{color:inherit}
           <li><b>里的範圍有調整過</b>：民治里在 107 年 7 月 1 日併入民主里，民主里 106 年以前的數字已把原民治里加進去。</li>
           <li><b>歷年取每年 12 月底</b>：最後一點是最新月份，和前一年年底相差不到一年。</li>
           <li><b>據點可能有遺漏或已變動</b>：清單依公告彙整，新設、停辦或更換承辦單位可能還沒更新；休站中的據點不計入；據點算在所在的里，實際服務的長輩可能來自鄰近的里。</li>
+          <li><b>潛力型據點另外列出</b>：每年只辦 3～6 場活動，不算進「照顧型據點」與「每處據點對應幾位長輩」；每處的場次依社會處公告標示。</li>
+          <li><b>據點所屬的里依官方公告</b>：少數據點的活動地點在鄰近的里（例如民立里的潛力型據點在民運民樂里社區活動中心辦活動），網站仍依公告列在原本的里。</li>
           <li><b>族別人數少的有合併</b>：某族在一個里少於 5 人時，和「尚未申報族別」一起合併為「其他／未申報」，避免認出個人。</li>
           <li><b>地圖邊界是簡化版</b>：形狀和位置僅供參考，不是精確的地籍界線。</li>
         </ul>
@@ -212,13 +215,13 @@ footer a{color:inherit}
   </section>
 
   <footer>
-    <p>名詞說明：「照顧型據點」包含社區關懷據點、社區長照站、朝陽站、福氣站、伯公站、原住民族文化健康站（文健站）、失智據點；「學習型」包含長青大學、樂齡中心、綠色照顧站、銀髮健身俱樂部。文健站服務對象為 55 歲以上原住民長者。休站中的據點不列入計算。原住民族別人數少於 5 人時合併為「其他／未申報」。</p>
+    <p>名詞說明：「照顧型據點」包含社區關懷據點、社區長照站、朝陽站、福氣站、伯公站、原住民族文化健康站（文健站）、失智據點；「潛力型據點」平時提供關懷訪視、電話問安，每年辦理 3～6 場健康促進活動，服務量和每週開站的據點不同，所以另外列出、不算進照顧型；「學習型」包含長青大學、樂齡中心、綠色照顧站、銀髮健身俱樂部。文健站服務對象為 55 歲以上原住民長者。休站中的據點不列入計算。原住民族別人數少於 5 人時合併為「其他／未申報」。</p>
     <p>整理：林岳志</p>
   </footer>
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
 
-<script src="data/data.js?v=23f78448"></script>
+<script src="data/data.js?v=df68c16e"></script>
 <script>
 (function(){
 const P = window.POP, L = P.latest, H = P.history, G = P.geo;
@@ -242,13 +245,16 @@ const save=()=>{try{localStorage.setItem('hlpop',JSON.stringify({mode:state.mode
 const careSites = v=>v.sites.filter(s=>!s.closed && s.group==='照顧型');
 const wjSites = v=>v.sites.filter(s=>!s.closed && s.type==='文化健康站');
 const openSites = v=>v.sites.filter(s=>!s.closed);
+const potSites = v=>v.sites.filter(s=>!s.closed && s.group==='潛力型');
+const allPot = ()=>V.flatMap(potSites);
+const tagOf = s=> s.type==='文化健康站'?['wj','文健站'] : s.group==='潛力型'?['pot','潛力型據點'] : [s.group==='照顧型'?'care':'learn', s.type];
 function metrics(v){
   const a=v.all, d=v.ind, cs=careSites(v).length, wj=wjSites(v).length;
   return {
     name:v.name,
     total:a.total, c:a.c, w:a.w, e:a.e,
     c_pct:pct(a.c,a.total), w_pct:pct(a.w,a.total), e_pct:pct(a.e,a.total),
-    care:cs, learn:openSites(v).length-cs, perCare: cs? Math.round(a.e/cs):null,
+    care:cs, pot:potSites(v).length, perCare: cs? Math.round(a.e/cs):null,
     i_total:d.total, i_share:pct(d.total,a.total), i_c_pct:pct(d.c,d.total), i_w_pct:pct(d.w,d.total), i_e_pct:pct(d.e,d.total),
     i_e55:d.e55, wj:wj, perWj: wj? Math.round(d.e55/wj):null
   };
@@ -285,6 +291,8 @@ function renderOverview(){
   } else {
     const cs = V.reduce((s,v)=>s+careSites(v).length,0);
     t+=`<div class="tile"><div class="k">照顧型據點</div><div class="v">${cs} 處</div><div class="p">平均每處 ${fmt(Math.round(c.e/cs))} 位長輩</div></div>`;
+    const ps=allPot(), yrs=ps.map(s=>s.perYear);
+    t+=`<div class="tile"><div class="k">潛力型據點（不列入照顧型）</div><div class="v">${ps.length} 處</div><div class="p">每年辦理 ${Math.min(...yrs)}～${Math.max(...yrs)} 場活動</div></div>`;
   }
   $('#ov-tiles').innerHTML=t;
   shareBar($('#ov-share'), c);
@@ -364,8 +372,10 @@ function renderVillage(){
   const showSites = ind? sites.filter(s=>s.type==='文化健康站') : sites;
   h+=`<div><h3>${ind?'文健站':'長輩據點'}（${showSites.length} 處）</h3>`;
   if(ind){const wj=showSites.length; h+=`<p class="small">${wj?`平均每處文健站要照顧 ${fmt(Math.round(d.e55/wj))} 位 55 歲以上族人（全市平均 ${fmt(Math.round(cd.e55/V.reduce((s,x)=>s+wjSites(x).length,0)))} 位）`:'這個里沒有文健站'}</p>`}
-  else{const cs=careSites(v).length; h+=`<p class="small">${cs?`照顧型 ${cs} 處，平均每處對應 ${fmt(Math.round(v.all.e/cs))} 位長輩（全市平均 ${fmt(Math.round(L.city.all.e/V.reduce((s,x)=>s+careSites(x).length,0)))} 位）`:'這個里沒有照顧型據點'}</p>`}
-  h+='<ul class="sites">'+showSites.map(s=>`<li><span class="tag ${s.type==='文化健康站'?'wj':s.group==='照顧型'?'care':'learn'}">${s.type==='文化健康站'?'文健站':esc(s.type)}</span>${esc(s.name)}<div class="small">${esc(s.addr)}</div></li>`).join('')+'</ul>';
+  else{const cs=careSites(v).length, pn=potSites(v).length; h+=`<p class="small">${cs?`照顧型 ${cs} 處，平均每處對應 ${fmt(Math.round(v.all.e/cs))} 位長輩（全市平均 ${fmt(Math.round(L.city.all.e/V.reduce((s,x)=>s+careSites(x).length,0)))} 位）`:'這個里沒有照顧型據點'}${pn?`；另有潛力型據點 ${pn} 處（每年辦理數場活動，不列入照顧型計算）`:''}</p>`}
+  const order={'照顧型':0,'潛力型':1,'學習型':2};
+  h+='<ul class="sites">'+[...showSites].sort((a,b)=>order[a.group]-order[b.group]).map(s=>{const [cls,lab]=tagOf(s);
+    return `<li><span class="tag ${cls}">${esc(lab)}</span>${esc(s.name)}${s.perYear?`<div class="small"><b>每年 ${s.perYear} 場</b>健康促進活動，平時提供關懷訪視、電話問安</div>`:''}<div class="small">${esc(s.addr)}</div></li>`}).join('')+'</ul>';
   if(!ind && closed.length) h+=`<p class="small">休站中：${closed.map(s=>esc(s.name)).join('、')}</p>`;
   h+='</div>';
   // 右欄：原住民族別 or 歷年
@@ -391,7 +401,7 @@ function selectVillage(n,scroll){state.village=n;save();renderMap();renderVillag
 
 // ---------- 排行榜 ----------
 const COLS={
-  all:[{k:'name',l:'里別'},{k:'total',l:'總人口',f:fmt},{k:'c_pct',l:'小孩%',f:p1},{k:'w_pct',l:'青壯年%',f:p1},{k:'e_pct',l:'長輩%',f:p1},{k:'e',l:'長輩人數',f:fmt},{k:'care',l:'照顧型據點',f:n=>n},{k:'perCare',l:'每處據點對應長輩',f:n=>n==null?'無據點':fmt(n)}],
+  all:[{k:'name',l:'里別'},{k:'total',l:'總人口',f:fmt},{k:'c_pct',l:'小孩%',f:p1},{k:'w_pct',l:'青壯年%',f:p1},{k:'e_pct',l:'長輩%',f:p1},{k:'e',l:'長輩人數',f:fmt},{k:'care',l:'照顧型據點',f:n=>n},{k:'pot',l:'潛力型',f:n=>n||''},{k:'perCare',l:'每處據點對應長輩',f:n=>n==null?'無據點':fmt(n)}],
   ind:[{k:'name',l:'里別'},{k:'i_total',l:'原住民人數',f:fmt},{k:'i_share',l:'占全里%',f:p1},{k:'i_c_pct',l:'小孩%',f:p1},{k:'i_e_pct',l:'長輩%',f:p1},{k:'i_e55',l:'55歲以上族人',f:fmt},{k:'wj',l:'文健站',f:n=>n},{k:'perWj',l:'每處文健站對應55+',f:n=>n==null?'無文健站':fmt(n)}]
 };
 function renderRank(){
