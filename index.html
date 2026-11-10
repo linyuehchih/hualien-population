@@ -116,6 +116,49 @@ tbody tr.sel{background:color-mix(in srgb,var(--accent) 14%,transparent)}
 .chart text{fill:var(--muted);font-size:14px}
 .chart .lbl{font-size:14px;font-weight:700;fill:var(--ink)}
 .note{font-size:.9rem;color:var(--ink2);margin-top:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button.big,button.mid{font:inherit;font-weight:700;border:0;border-radius:10px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.big{font-size:1.2rem;padding:14px 20px;width:100%;min-height:56px}
+button.mid{font-size:1.05rem;padding:8px 18px;min-height:44px;flex:none}
+button.big:focus-visible,button.mid:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.or{margin:18px 0 8px;color:var(--ink2);font-weight:700}
+.row-form{display:flex;gap:8px;flex-wrap:wrap}
+.row-form input{flex:1 1 200px;font:inherit;font-size:1.1rem;padding:8px 12px;border-radius:8px;border:1px solid var(--axis);background:var(--surface);color:var(--ink);min-height:44px;min-width:0}
+.row-form select{flex:1 1 140px;min-width:0}
+details{margin-top:14px}
+summary{cursor:pointer;color:var(--accent);font-weight:700;min-height:36px;padding:4px 0}
+#near-status{margin-top:16px;font-size:1.05rem;scroll-margin-top:72px}
+/* 標題列：標題｜找據點按鈕｜切換鈕（手機上切換鈕換到第二行） */
+.head-l{flex:1 1 auto;min-width:0}
+.findbtn{order:3;font:inherit;font-size:1rem;font-weight:700;border:0;border-radius:999px;background:var(--old);color:#fff;padding:8px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+.findbtn:focus-visible,.closebtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top .seg{order:2}
+@media(max-width:700px){h1{font-size:1.3rem;white-space:nowrap}.head-l{flex:1 1 0}.findbtn{order:1;align-self:flex-start;padding:8px 12px}.top .seg{order:2}.top-in{row-gap:6px}}
+/* 跳出視窗：手機全螢幕，電腦置中 */
+dialog#near-dlg{border:0;padding:0;margin:auto;width:min(680px,100%);max-width:100%;max-height:min(92dvh,100%);border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+dialog#near-dlg::backdrop{background:rgba(0,0,0,.45)}
+@media(max-width:600px){dialog#near-dlg{width:100%;height:100dvh;max-height:100dvh;border-radius:0;margin:0}}
+.dlg-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card);padding:12px 16px;border-bottom:1px solid var(--grid)}
+.dlg-head h2{margin:0}
+.closebtn{font:inherit;font-size:1rem;font-weight:700;border:1px solid var(--axis);border-radius:999px;background:var(--surface);color:var(--ink);padding:6px 14px;min-height:44px;cursor:pointer}
+.dlg-body{padding:16px}
+fieldset.who{border:1px solid var(--ring);border-radius:12px;padding:10px 12px 12px;margin:0;display:grid;gap:8px}
+fieldset.who legend{font-weight:700;padding:0 6px}
+fieldset.who.need{border:2px solid var(--up)}
+fieldset.who label{display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--axis);border-radius:10px;background:var(--surface);cursor:pointer;min-height:56px}
+fieldset.who input{width:24px;height:24px;flex:none;accent-color:var(--accent);margin:0}
+fieldset.who label:has(input:checked){border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+fieldset.who label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+body.dlg-open{overflow:hidden}
+#near-status .err{color:var(--up)}
+.near-list{list-style:none;margin:8px 0 0;padding:0}
+.near-list li{border-top:1px solid var(--grid);padding:14px 0}
+.near-list .d{font-size:1.4rem;font-weight:700;color:var(--ink);margin-right:8px;font-variant-numeric:tabular-nums}
+.near-list .nm{font-size:1.1rem;font-weight:700}
+.near-list .ln{margin-top:4px;font-size:1rem;color:var(--ink2)}
+.near-list .ln b{color:var(--ink);font-weight:700}
+.near-list a.tel{display:inline-block;font-size:1.1rem;font-weight:700;color:var(--accent);margin-right:12px;padding:4px 0}
+.near-list a.nav{display:inline-block;margin-top:6px;font-weight:700;color:var(--accent)}
 ul.notes{margin:0;padding-left:1.2em}
 ul.notes li{margin:8px 0;font-size:.95rem;color:var(--ink2)}
 ul.notes b{color:var(--ink)}
@@ -130,10 +173,11 @@ footer a{color:inherit}
 <body>
 <header class="top">
   <div class="top-in">
-    <div>
+    <div class="head-l">
       <h1>花蓮市人口地圖</h1>
       <div class="asof" id="asof"></div>
     </div>
+    <button type="button" class="findbtn" id="open-near" aria-haspopup="dialog">📍 找附近據點</button>
     <div class="seg" role="group" aria-label="切換人口資料">
       <button type="button" data-mode="all" aria-pressed="true">全體人口</button>
       <button type="button" data-mode="ind" aria-pressed="false">原住民人口</button>
@@ -142,6 +186,43 @@ footer a{color:inherit}
 </header>
 
 <main>
+  <dialog id="near-dlg" aria-labelledby="near-title">
+    <div class="dlg-head">
+      <h2 id="near-title">找附近的據點</h2>
+      <button type="button" class="closebtn" id="close-near">✕ 關閉</button>
+    </div>
+    <div class="dlg-body">
+      <p class="sub">找出離你 1 公里內的長輩據點，由近到遠排列，附地址、電話和服務時間。</p>
+      <fieldset class="who" id="who">
+        <legend>第一步：要找給誰的據點？</legend>
+        <label><input type="radio" name="who" value="ind"><span><b>原住民長輩</b><br><span class="small">只找文化健康站（文健站，55 歲以上族人）</span></span></label>
+        <label><input type="radio" name="who" value="non"><span><b>非原住民長輩</b><br><span class="small">找一般長輩據點（不含文健站）</span></span></label>
+        <label><input type="radio" name="who" value="all"><span><b>幫家人查／都想看</b><br><span class="small">全部據點都列出</span></span></label>
+      </fieldset>
+      <div class="or" style="margin-top:14px">第二步：用哪裡當起點？</div>
+      <button type="button" class="big" id="btn-gps">📍 用我現在的位置找</button>
+      <p class="small" style="margin:6px 0 0">手機會問你「是否允許取得位置」，請按「允許」。位置只在你的手機上計算，不會傳出去。</p>
+      <div class="or">或是輸入地址</div>
+      <form id="addr-form" class="row-form">
+        <label for="addr" class="sr">地址</label>
+        <input id="addr" type="text" inputmode="text" autocomplete="street-address" placeholder="例如：中山路 100 號">
+        <button type="submit" class="mid">找</button>
+      </form>
+      <p class="small" style="margin:6px 0 0">輸入的地址會送到 OpenStreetMap（免費開放地圖）查詢位置。</p>
+      <details id="pick-street">
+        <summary>找不到地址？改用選的（選里和路名）</summary>
+        <div class="row-form" style="margin-top:10px">
+          <label for="ps-v" class="sr">里別</label><select id="ps-v"></select>
+          <label for="ps-s" class="sr">路名</label><select id="ps-s"></select>
+          <button type="button" class="mid" id="ps-go">找</button>
+        </div>
+        <p class="small">選路名時，以那條路在這個里的中段為中心，位置比較概略。</p>
+      </details>
+      <div id="near-status" role="status" aria-live="polite"></div>
+      <ol id="near-list" class="near-list"></ol>
+    </div>
+  </dialog>
+
   <section id="overview">
     <h2 id="ov-title">花蓮市全體人口</h2>
     <p class="sub" id="ov-sub">把人口分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）</p>
@@ -193,6 +274,8 @@ footer a{color:inherit}
           <li><b>109～112 年各里人口</b>：內政部戶政司開放資料「村里戶數、單一年齡人口」（這 4 年縣府報表沒有分里）。</li>
           <li><b>據點</b>：花蓮縣政府社會處、衛生局、原住民行政處、客家事務處、花蓮市公所等 115 年公告資料彙整。</li>
           <li><b>文健站</b>：另依原住民族委員會「115 年原住民族文化健康站清冊」核對補列。</li>
+          <li><b>據點電話、服務時間</b>：同上述公告；公告沒有列電話的據點會註明。</li>
+          <li><b>據點位置與地址查詢</b>：© OpenStreetMap 貢獻者（開放資料，ODbL 授權），用門牌比對；找不到該門牌時，用同一條路號碼最接近的門牌估計。</li>
           <li><b>地圖邊界</b>：內政部國土測繪中心村里界圖（開放資料 taiwan-atlas 2021 年版）。</li>
           <li><b>核對方式</b>：每次更新都用縣府另一張報表（表2，各里人口按原住民身分）交叉比對全市與各里人數，一致才發布。</li>
         </ul>
@@ -208,6 +291,8 @@ footer a{color:inherit}
           <li><b>潛力型據點另外列出</b>：每年只辦 3～6 場活動，不算進「照顧型據點」與「每處據點對應幾位長輩」；每處的場次依社會處公告標示。</li>
           <li><b>據點所屬的里依官方公告</b>：少數據點的活動地點在鄰近的里（例如民立里的潛力型據點在民運民樂里社區活動中心辦活動），網站仍依公告列在原本的里。</li>
           <li><b>族別人數少的有合併</b>：某族在一個里少於 5 人時，和「尚未申報族別」一起合併為「其他／未申報」，避免認出個人。</li>
+          <li><b>「找附近的據點」是直線距離</b>：實際走路或開車的路程會比較長；據點位置是用地址估計的，少數可能差幾十公尺；有 1 處據點地址無法定位，沒有列入距離計算。</li>
+          <li><b>你的位置</b>：「用我現在的位置找」只在你的手機上計算，不會傳出去；「輸入地址」會把地址送到 OpenStreetMap 查詢位置，本網站不記錄。</li>
           <li><b>地圖邊界是簡化版</b>：形狀和位置僅供參考，不是精確的地籍界線。</li>
         </ul>
       </div>
@@ -221,7 +306,7 @@ footer a{color:inherit}
 </main>
 <div class="tip" id="tip" role="tooltip"></div>
 
-<script src="data/data.js?v=df68c16e"></script>
+<script src="data/data.js?v=744eeeb1"></script>
 <script>
 (function(){
 const P = window.POP, L = P.latest, H = P.history, G = P.geo;
@@ -461,6 +546,106 @@ function renderTrend(){
   $('#tr-legend').innerHTML=GROUPS.map(g=>`<span><span class="sw" style="background:${g.color}"></span>${g.name}：${p1(pct(f[g.k],f.total))} → ${p1(pct(l[g.k],l.total))}</span>`).join('')+`<span>總人數：${fmt(f.total)} → ${fmt(l.total)}</span>`;
   $('#tr-note').textContent = H.sourceNote + '。';
 }
+
+// ---------- 找附近的據點（跳出視窗） ----------
+const dlg=$('#near-dlg');
+$('#open-near').onclick=()=>{ if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open',''); document.body.classList.add('dlg-open'); };
+const closeDlg=()=>{ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); document.body.classList.remove('dlg-open'); };
+$('#close-near').onclick=closeDlg;
+dlg.addEventListener('close',()=>document.body.classList.remove('dlg-open'));
+dlg.addEventListener('click',e=>{ if(e.target===dlg) closeDlg(); });   // 點視窗外的暗處也能關
+// 網址加 #near 可以直接打開（方便分享「找據點」連結）
+if(location.hash==='#near') setTimeout(()=>$('#open-near').click(),0);
+const RADIUS = 1000;
+const SITES = V.flatMap(v=>v.sites.filter(s=>!s.closed).map(s=>({...s, village:v.name})));
+const unlocated = SITES.filter(s=>s.lat==null);
+function meters(a,b){const R=6371000, r=x=>x*Math.PI/180, dLat=r(b.lat-a.lat), dLon=r(b.lon-a.lon);
+  const h=Math.sin(dLat/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(h))}
+const fmtDist = m=> m<1000? `${Math.round(m/10)*10} 公尺` : `${(m/1000).toFixed(1)} 公里`;
+// 分機（#3515）在撥號連結裡改成「,」：先撥總機、停一下再自動按分機
+const telHref = n=>{const [main,ext]=n.split('#'); return 'tel:'+main.replace(/[^\d]/g,'')+(ext?','+ext.replace(/[^\d]/g,''):'')};
+const telLinks = t=> t? t.split(/\s*\/\s*/).map(n=>`<a class="tel" href="${telHref(n)}">📞 ${esc(n)}</a>`).join('') : '<span class="small">公告未列電話，請洽承辦單位</span>';
+const nst=$('#near-status'), nlist=$('#near-list');
+function setStatus(html,err){nst.innerHTML = err? `<span class="err">${html}</span>` : html}
+// 「要找給誰」：原住民 → 只找文健站；非原住民 → 不含文健站；全部 → 都列
+const WHO = {ind:{label:'文健站', keep:s=>s.type==='文化健康站'},
+             non:{label:'一般長輩據點（不含文健站）', keep:s=>s.type!=='文化健康站'},
+             all:{label:'據點', keep:()=>true}};
+const whoBox=$('#who');
+const getWho=()=>{const r=whoBox.querySelector('input:checked'); return r? r.value : null};
+try{ const w=localStorage.getItem('hlpop_who'); if(w && WHO[w]) whoBox.querySelector(`input[value="${w}"]`).checked=true }catch(e){}
+whoBox.addEventListener('change',()=>{ whoBox.classList.remove('need'); try{localStorage.setItem('hlpop_who',getWho())}catch(e){}; if(lastCenter) showNear(...lastCenter) });
+function needWho(){ if(getWho()) return false;
+  whoBox.classList.add('need'); setStatus('請先在「第一步」選擇要找給誰的據點。',true);
+  whoBox.scrollIntoView({behavior:'smooth',block:'center'}); whoBox.querySelector('input').focus(); return true }
+let lastCenter=null;
+function showNear(center, label){
+  lastCenter=[center,label];
+  const who=WHO[getWho()||'all'];
+  const arr = SITES.filter(s=>s.lat!=null && who.keep(s)).map(s=>({s, d:meters(center,s)})).sort((a,b)=>a.d-b.d);
+  let list = arr.filter(x=>x.d<=RADIUS), msg;
+  if(list.length) msg = `以「${esc(label)}」為中心，<b>1 公里內有 ${list.length} 處${who.label}</b>（直線距離，由近到遠）：`;
+  else { list = arr.slice(0,3); msg = `以「${esc(label)}」為中心，1 公里內沒有${who.label}。以下是<b>最近的 ${list.length} 處</b>：`; }
+  if(getWho()==='ind') msg += `<div class="small" style="margin-top:4px">文健站服務 55 歲以上原住民長者，花蓮市共 ${SITES.filter(WHO.ind.keep).length} 處，週一到週五開放。</div>`;
+  if(getWho()==='non') msg += `<div class="small" style="margin-top:4px">原住民長輩想找文健站，請在第一步改選「原住民長輩」。</div>`;
+  setStatus(msg);
+  const unl = unlocated.filter(who.keep);
+  nlist.innerHTML = list.map(({s,d})=>{const [cls,lab]=tagOf(s);
+    return `<li><div><span class="d">${fmtDist(d)}</span><span class="tag ${cls}">${esc(lab)}</span></div>
+      <div class="nm">${esc(s.name)}</div>
+      <div class="ln"><b>地址</b>　${esc(s.addr)}</div>
+      <div class="ln"><b>電話</b>　${telLinks(s.tel)}</div>
+      ${s.hours?`<div class="ln"><b>服務時間</b>　${esc(s.hours)}</div>`:''}
+      ${s.perYear?`<div class="ln">平時提供關懷訪視、電話問安</div>`:''}
+      ${s.org && s.org!==s.name?`<div class="ln"><b>承辦單位</b>　${esc(s.org)}</div>`:''}
+      ${s.loc==='鄰近門牌'?'<div class="small">＊位置依同一條路號碼最接近的門牌估計</div>':''}
+      <a class="nav" href="https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}" target="_blank" rel="noopener">🧭 用 Google 地圖導航</a></li>`}).join('')
+    + (unl.length?`<li class="small">另有 ${unl.map(s=>esc(s.name)).join('、')} 地址無法在地圖上定位，未列入距離計算，請電話洽詢。</li>`:'');
+  nst.scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#btn-gps').onclick=()=>{
+  if(needWho()) return;
+  if(!navigator.geolocation){setStatus('這支手機或瀏覽器不支援定位，請改用輸入地址。',true);return}
+  setStatus('正在取得你的位置…（可能要幾秒鐘）'); nlist.innerHTML='';
+  navigator.geolocation.getCurrentPosition(
+    p=>showNear({lat:p.coords.latitude, lon:p.coords.longitude}, '你現在的位置'),
+    e=>setStatus(e.code===1?'沒有取得定位權限。請在手機設定允許這個網頁使用位置，或改用輸入地址。':'暫時抓不到位置，請到戶外或靠窗再試一次，或改用輸入地址。',true),
+    {enableHighAccuracy:true, timeout:15000, maximumAge:60000});
+};
+// 地址 → OpenStreetMap（台灣門牌要寫成「號碼 路名」，例如「146 廣東街」）
+let lastQ=0;
+async function geocode(text){
+  const t=text.replace(/\s+/g,'').replace(/^(970)?(花蓮縣)?(花蓮市)?/,'').replace(/^[一-鿿]{1,3}里(?=[一-鿿]{1,5}(路|街))/,'').replace(/^\d+鄰/,'')
+    .replace(/之/g,'-').replace(/(\d)段/g,(m,d)=>'一二三四五六七八九'[d-1]+'段');
+  const m=t.match(/(.+?(?:路|街|大道)(?:[一二三四五六七八九十]段)?)((?:\d+巷)?(?:\d+弄)?)(\d+(?:-\d+)?)號?/);
+  const tries = m? [{street:`${m[3].replace('-','之')} ${m[1]}${m[2]}`, exact:true},{street:`${m[1]}${m[2]}`},{street:m[1]}] : [{q:t+' 花蓮市'}];
+  for(const tr of tries){
+    const wait=1100-(Date.now()-lastQ); if(wait>0) await new Promise(r=>setTimeout(r,wait)); lastQ=Date.now();
+    const p=new URLSearchParams({format:'jsonv2',limit:'1',addressdetails:'1',countrycodes:'tw',viewbox:'121.55,24.06,121.68,23.94',bounded:'1','accept-language':'zh-TW'});
+    if(tr.street){p.set('street',tr.street);p.set('city','花蓮市')} else p.set('q',tr.q);
+    const r=await fetch('https://nominatim.openstreetmap.org/search?'+p).then(x=>x.json());
+    if(r.length){ const a=r[0].address||{}; const hn=(a.house_number||'').replace('號','').replace('之','-');
+      if(tr.exact && hn!==m[3]) continue;
+      return {lat:+r[0].lat, lon:+r[0].lon, exact:!!tr.exact, road:(a.road||'')}; }
+  }
+  return null;
+}
+$('#addr-form').onsubmit=async e=>{
+  e.preventDefault(); if(needWho()) return; const text=$('#addr').value.trim(); if(!text) return;
+  setStatus('正在查詢地址…'); nlist.innerHTML='';
+  try{
+    const g=await geocode(text);
+    if(!g){setStatus('找不到這個地址。請檢查路名和門牌，或用下面的「改用選的」。',true); $('#pick-street').open=true; return}
+    showNear(g, g.exact? text : `${g.road||text}（找不到門牌，以這條路的位置估計）`);
+  }catch(err){setStatus('地址查詢暫時連不上，請稍後再試，或用下面的「改用選的」。',true); $('#pick-street').open=true}
+};
+// 選里 → 選路名
+const ST=P.streets, psv=$('#ps-v'), pss=$('#ps-s');
+psv.innerHTML='<option value="">請選里別</option>'+Object.keys(ST).sort((a,b)=>a.localeCompare(b,'zh-Hant-TW-u-co-stroke')).map(v=>`<option>${v}</option>`).join('');
+const fillStreets=()=>{const s=ST[psv.value]||{}; pss.innerHTML='<option value="">請選路名</option>'+Object.keys(s).sort((a,b)=>a.localeCompare(b,'zh-Hant-TW-u-co-stroke')).map(n=>`<option>${n}</option>`).join('')};
+psv.onchange=fillStreets; fillStreets();
+$('#ps-go').onclick=()=>{if(needWho()) return; const c=(ST[psv.value]||{})[pss.value]; if(!c){setStatus('請先選里別和路名。',true);return}
+  showNear({lat:c[0],lon:c[1]}, `${psv.value}${pss.value}`)};
 
 // ---------- 模式切換 ----------
 document.querySelectorAll('.top .seg button').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;save();renderAll()});
