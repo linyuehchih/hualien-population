@@ -133,7 +133,16 @@ summary{cursor:pointer;color:var(--accent);font-weight:700;min-height:36px;paddi
 .findbtn{order:3;font:inherit;font-size:1rem;font-weight:700;border:0;border-radius:999px;background:var(--old);color:#fff;padding:8px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
 .findbtn:focus-visible,.closebtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .top .seg{order:2}
-@media(max-width:700px){h1{font-size:1.3rem;white-space:nowrap}.head-l{flex:1 1 0}.findbtn{order:1;align-self:flex-start;padding:8px 12px}.top .seg{order:2}.top-in{row-gap:6px}}
+/* 手機：長輩常把字體調大，標題列改成不固定、各自一行；「找附近據點」改成右下角浮動按鈕，不和標題搶位置 */
+.asof span{white-space:nowrap}
+@media(max-width:700px){
+  header.top{position:static}
+  .head-l{flex:1 1 100%}
+  h1{font-size:1.4rem}
+  .top .seg{order:2}
+  .findbtn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;font-size:1.1rem;padding:12px 20px;min-height:52px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  main{padding-bottom:96px}
+}
 /* 跳出視窗：手機全螢幕，電腦置中 */
 dialog#near-dlg{border:0;padding:0;margin:auto;width:min(680px,100%);max-width:100%;max-height:min(92dvh,100%);border-radius:14px;background:var(--card);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.35)}
 dialog#near-dlg::backdrop{background:rgba(0,0,0,.45)}
@@ -166,7 +175,7 @@ ul.notes a{color:var(--accent)}
 footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);color:var(--ink2);font-size:.9rem}
 footer a{color:inherit}
 .hide{display:none!important}
-@media(max-width:600px){html{font-size:17px}.tile .v{font-size:1.7rem}#map text{font-size:18px}}
+@media(max-width:600px){html{font-size:17px}.tile .v{font-size:min(1.7rem,8.5vw)}.tile{padding:12px}#map text{font-size:18px}}
 @media print{header.top{position:static}}
 </style>
 </head>
@@ -654,7 +663,7 @@ function renderAll(){
   if(!MAPKEYS[state.mode].find(k=>k.k===state.mapKey)) state.mapKey=MAPKEYS[state.mode][0].k;
   renderOverview(); renderMapModes(); renderMap(); renderVillage(); renderRank(); renderTrend();
 }
-$('#asof').innerHTML = `資料時間：${L.asOf}　<a href="#about" style="color:var(--accent)">資料來源與限制</a>`;
+$('#asof').innerHTML = `<span>資料時間：${L.asOf}</span>　<span><a href="#about" style="color:var(--accent)">資料來源與限制</a></span>`;
 document.querySelectorAll('.asof-text').forEach(e=>e.textContent=L.asOf);
 renderAll();
 let rz; let lastW=innerWidth;
