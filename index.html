@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花蓮市人口地圖</title>
+<meta name="description" content="花蓮市 44 個里的小孩、青壯年、長輩人口與據點數，資料來自花蓮縣政府民政處，每月更新。">
+<meta property="og:title" content="花蓮市人口地圖">
+<meta property="og:description" content="查查你住的里：小孩、青壯年、長輩各有多少人？附原住民人口、文健站與歷年變化。資料來源：花蓮縣政府民政處。">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  color-scheme:light;
+  --page:#f9f9f7; --surface:#fcfcfb; --card:#ffffff;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#6f6d68;
+  --grid:#e1e0d9; --axis:#c3c2b7; --ring:rgba(11,11,11,.10);
+  --kid:#2a78d6; --work:#1baf7a; --old:#eb6834;
+  --accent:#2a78d6; --accent-ink:#ffffff; --sel:#0b0b0b;
+  --tag-wj:#6250d6; --tag-care:#256abf; --tag-learn:#6f6d68;
+  --seq1:#cde2fb; --seq2:#9ec5f4; --seq3:#5598e7; --seq4:#256abf; --seq5:#0d366b;
+  --up:#c2410c; --down:#256abf;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --page:#0d0d0d; --surface:#1a1a19; --card:#1f1f1e;
+    --ink:#f0efec; --ink2:#c3c2b7; --muted:#a3a29a;
+    --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+    --kid:#3987e5; --work:#199e70; --old:#d95926;
+    --accent:#3987e5; --accent-ink:#ffffff; --sel:#f0efec;
+    --tag-wj:#9085e9; --tag-care:#5598e7; --tag-learn:#a3a29a;
+    --seq1:#184f95; --seq2:#256abf; --seq3:#3987e5; --seq4:#86b6ef; --seq5:#cde2fb;
+    --up:#fb923c; --down:#86b6ef;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --card:#1f1f1e;
+  --ink:#f0efec; --ink2:#c3c2b7; --muted:#a3a29a;
+  --grid:#2c2c2a; --axis:#383835; --ring:rgba(255,255,255,.10);
+  --kid:#3987e5; --work:#199e70; --old:#d95926;
+  --accent:#3987e5; --accent-ink:#ffffff; --sel:#f0efec;
+  --tag-wj:#9085e9; --tag-care:#5598e7; --tag-learn:#a3a29a;
+  --seq1:#184f95; --seq2:#256abf; --seq3:#3987e5; --seq4:#86b6ef; --seq5:#cde2fb;
+  --up:#fb923c; --down:#86b6ef;
+}
+*{box-sizing:border-box}
+html{font-size:18px}
+body{margin:0;background:var(--page);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Microsoft JhengHei","PingFang TC",sans-serif;line-height:1.6}
+main{max-width:1080px;margin:0 auto;padding:0 16px 48px}
+header.top{position:sticky;top:0;z-index:20;background:var(--page);border-bottom:1px solid var(--grid)}
+.top-in{max-width:1080px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+h1{font-size:1.5rem;margin:0;line-height:1.3}
+.asof{color:var(--ink2);font-size:.9rem}
+h2{font-size:1.3rem;margin:0 0 4px}
+.sub{color:var(--ink2);margin:0 0 16px;font-size:.95rem}
+section{margin-top:28px;scroll-margin-top:110px}
+.card{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:20px}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:999px;padding:3px;gap:2px;background:var(--surface);flex-wrap:wrap}
+.seg button{font:inherit;font-size:1rem;border:0;background:transparent;color:var(--ink);padding:6px 14px;border-radius:999px;cursor:pointer;min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.seg button:focus-visible,select:focus-visible,th button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--ring);border-radius:10px;padding:14px 16px}
+.tile .k{display:flex;align-items:center;gap:8px;color:var(--ink2);font-size:.95rem}
+.tile .v{font-size:2rem;font-weight:700;line-height:1.2;margin-top:4px}
+.tile .p{color:var(--ink2);font-size:1rem}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;flex:none}
+.share{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px;margin-top:16px;background:var(--card)}
+.share div{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;color:var(--ink2);font-size:.95rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.maprow{display:grid;grid-template-columns:1fr;gap:16px}
+#map{width:100%;height:auto;display:block;touch-action:manipulation}
+#map path{stroke:var(--surface);stroke-width:1.2;cursor:pointer;transition:opacity .15s}
+#map path:hover{opacity:.8}
+#map path.sel{stroke:var(--sel);stroke-width:3.5}
+#map text{font-size:15px;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3px;pointer-events:none;font-weight:700}
+.scale{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.9rem;color:var(--ink2);margin-top:10px}
+.scale span{display:inline-flex;align-items:center;gap:6px}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--ring);box-shadow:0 4px 16px rgba(0,0,0,.18);border-radius:8px;padding:8px 12px;font-size:.9rem;line-height:1.5;max-width:280px;display:none}
+.tip b{font-size:1rem}
+.pick{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+select{font:inherit;font-size:1.05rem;padding:8px 12px;border-radius:8px;border:1px solid var(--axis);background:var(--surface);color:var(--ink);min-height:44px}
+.vs{font-size:.95rem;margin-top:2px}
+.vs .up{color:var(--up)} .vs .down{color:var(--down)}
+.cmp{margin-top:16px}
+.cmp .row{display:grid;grid-template-columns:5.5em 1fr;gap:10px;align-items:center;margin-top:6px;font-size:.95rem}
+.cmp .share{margin-top:0;height:24px}
+.two{display:grid;grid-template-columns:1fr;gap:16px;margin-top:16px}
+@media(min-width:820px){.two{grid-template-columns:1fr 1fr}}
+h3{font-size:1.1rem;margin:0 0 8px}
+ul.sites{list-style:none;margin:0;padding:0}
+ul.sites li{padding:8px 0;border-top:1px solid var(--grid)}
+ul.sites li:first-child{border-top:0}
+.tag{display:inline-block;font-size:.8rem;border-radius:4px;padding:0 6px;margin-right:6px;border:1px solid currentColor;font-weight:700;white-space:nowrap}
+.tag.wj{color:var(--tag-wj)} .tag.care{color:var(--tag-care)} .tag.learn{color:var(--tag-learn)}
+.small{font-size:.9rem;color:var(--ink2)}
+.bars .b{display:grid;grid-template-columns:7.5em 1fr 4em;gap:8px;align-items:center;font-size:.95rem;margin:4px 0}
+.bars .track{height:16px;background:transparent}
+.bars .fill{height:100%;background:var(--accent);border-radius:0 4px 4px 0;min-width:2px}
+.bars .n{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;border:1px solid var(--ring);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.95rem;min-width:640px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--grid);white-space:nowrap;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+thead th{position:sticky;top:0;background:var(--surface);font-weight:700}
+th button{font:inherit;font-weight:700;background:none;border:0;color:var(--ink);cursor:pointer;padding:4px 0;min-height:36px}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface)}
+tbody tr.sel{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.chart svg{width:100%;height:auto;display:block}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ax{stroke:var(--axis);stroke-width:1}
+.chart text{fill:var(--muted);font-size:14px}
+.chart .lbl{font-size:14px;font-weight:700;fill:var(--ink)}
+.note{font-size:.9rem;color:var(--ink2);margin-top:10px}
+ul.notes{margin:0;padding-left:1.2em}
+ul.notes li{margin:8px 0;font-size:.95rem;color:var(--ink2)}
+ul.notes b{color:var(--ink)}
+ul.notes a{color:var(--accent)}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);color:var(--ink2);font-size:.9rem}
+footer a{color:inherit}
+.hide{display:none!important}
+@media(max-width:600px){html{font-size:17px}.tile .v{font-size:1.7rem}#map text{font-size:18px}}
+@media print{header.top{position:static}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div>
+      <h1>花蓮市人口地圖</h1>
+      <div class="asof" id="asof"></div>
+    </div>
+    <div class="seg" role="group" aria-label="切換人口資料">
+      <button type="button" data-mode="all" aria-pressed="true">全體人口</button>
+      <button type="button" data-mode="ind" aria-pressed="false">原住民人口</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="overview">
+    <h2 id="ov-title">花蓮市全體人口</h2>
+    <p class="sub" id="ov-sub">把人口分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）</p>
+    <div class="tiles" id="ov-tiles"></div>
+    <div class="share" id="ov-share" role="img"></div>
+    <div class="legend" id="ov-legend"></div>
+  </section>
+
+  <section id="mapsec">
+    <h2>44 個里分布地圖</h2>
+    <p class="sub">顏色越深數字越高。點地圖上的里，可以在下面看到這個里的詳細資料。</p>
+    <div class="card">
+      <div class="seg" role="group" aria-label="地圖顏色代表" id="mapmodes"></div>
+      <svg id="map" role="img" aria-label="花蓮市各里地圖"></svg>
+      <div class="scale" id="scale"></div>
+    </div>
+  </section>
+
+  <section id="village">
+    <h2>查我的里</h2>
+    <div class="pick">
+      <label for="vsel">選擇里別：</label>
+      <select id="vsel"></select>
+    </div>
+    <div class="card" id="vcard"></div>
+  </section>
+
+  <section id="ranking">
+    <h2>各里排行榜</h2>
+    <p class="sub">點欄位名稱可以排序，點一列可以看那個里的詳細資料。</p>
+    <div class="tablewrap"><table id="rank"></table></div>
+  </section>
+
+  <section id="trend">
+    <h2>歷年變化（花蓮市）</h2>
+    <p class="sub" id="tr-sub"></p>
+    <div class="card chart" id="trend-chart"></div>
+    <div class="legend" id="tr-legend"></div>
+    <p class="note" id="tr-note"></p>
+  </section>
+
+  <section id="about">
+    <h2>資料說明</h2>
+    <div class="two" style="margin-top:8px">
+      <div class="card">
+        <h3>資料來源</h3>
+        <ul class="notes">
+          <li><b>人口</b>：花蓮縣政府民政處<a href="https://ca.hl.gov.tw/List/52a6dfc9d0cf425488e22f947be8827a" target="_blank" rel="noopener">「人口統計各式列表」</a>每月報表（表3 年齡、表4 原住民年齡與身分、表7 原住民族別），目前為 <span class="asof-text"></span>。</li>
+          <li><b>109～112 年各里人口</b>：內政部戶政司開放資料「村里戶數、單一年齡人口」（這 4 年縣府報表沒有分里）。</li>
+          <li><b>據點</b>：花蓮縣政府社會處、衛生局、原住民行政處、客家事務處、花蓮市公所等 115 年公告資料彙整。</li>
+          <li><b>文健站</b>：另依原住民族委員會「115 年原住民族文化健康站清冊」核對補列。</li>
+          <li><b>地圖邊界</b>：內政部國土測繪中心村里界圖（開放資料 taiwan-atlas 2021 年版）。</li>
+          <li><b>核對方式</b>：每次更新都用縣府另一張報表（表2，各里人口按原住民身分）交叉比對全市與各里人數，一致才發布。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>資料可能的遺漏與限制</h3>
+        <ul class="notes">
+          <li><b>是戶籍人口，不是實際住的人</b>：在外地工作、就學沒遷戶籍的人仍算在原本的里；住在花蓮但戶籍在外地的人則不會算進來。</li>
+          <li><b>109～112 年原住民沒有分里資料</b>：這 4 年各里的原住民折線會斷開；全體人口用內政部資料補上。</li>
+          <li><b>里的範圍有調整過</b>：民治里在 107 年 7 月 1 日併入民主里，民主里 106 年以前的數字已把原民治里加進去。</li>
+          <li><b>歷年取每年 12 月底</b>：最後一點是最新月份，和前一年年底相差不到一年。</li>
+          <li><b>據點可能有遺漏或已變動</b>：清單依公告彙整，新設、停辦或更換承辦單位可能還沒更新；休站中的據點不計入；據點算在所在的里，實際服務的長輩可能來自鄰近的里。</li>
+          <li><b>族別人數少的有合併</b>：某族在一個里少於 5 人時，和「尚未申報族別」一起合併為「其他／未申報」，避免認出個人。</li>
+          <li><b>地圖邊界是簡化版</b>：形狀和位置僅供參考，不是精確的地籍界線。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>名詞說明：「照顧型據點」包含社區關懷據點、社區長照站、朝陽站、福氣站、伯公站、原住民族文化健康站（文健站）、失智據點；「學習型」包含長青大學、樂齡中心、綠色照顧站、銀髮健身俱樂部。文健站服務對象為 55 歲以上原住民長者。休站中的據點不列入計算。原住民族別人數少於 5 人時合併為「其他／未申報」。</p>
+    <p>整理：林岳志</p>
+  </footer>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script src="data/data.js?v=23f78448"></script>
+<script>
+(function(){
+const P = window.POP, L = P.latest, H = P.history, G = P.geo;
+const V = L.villages;
+const byName = Object.fromEntries(V.map(v=>[v.name,v]));
+const $ = s=>document.querySelector(s);
+const fmt = n=>n==null?'—':Number(n).toLocaleString('zh-TW');
+const pct = (a,b)=>b?a/b*100:0;
+const p1 = x=>x.toFixed(1)+'%';
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const GROUPS = [{k:'c',name:'小孩',range:'0～14 歲',color:'var(--kid)'},
+                {k:'w',name:'青壯年',range:'15～64 歲',color:'var(--work)'},
+                {k:'e',name:'長輩',range:'65 歲以上',color:'var(--old)'}];
+
+let state = {mode:'all', mapKey:'e_pct', village: null, sort:{key:'e_pct',dir:-1}};
+try{ const s = JSON.parse(localStorage.getItem('hlpop')||'{}'); if(s.mode) state.mode=s.mode; if(s.village && byName[s.village]) state.village=s.village; }catch(e){}
+if(!state.village) state.village = V[0].name;
+const save=()=>{try{localStorage.setItem('hlpop',JSON.stringify({mode:state.mode,village:state.village}))}catch(e){}};
+
+// ---------- 指標 ----------
+const careSites = v=>v.sites.filter(s=>!s.closed && s.group==='照顧型');
+const wjSites = v=>v.sites.filter(s=>!s.closed && s.type==='文化健康站');
+const openSites = v=>v.sites.filter(s=>!s.closed);
+function metrics(v){
+  const a=v.all, d=v.ind, cs=careSites(v).length, wj=wjSites(v).length;
+  return {
+    name:v.name,
+    total:a.total, c:a.c, w:a.w, e:a.e,
+    c_pct:pct(a.c,a.total), w_pct:pct(a.w,a.total), e_pct:pct(a.e,a.total),
+    care:cs, learn:openSites(v).length-cs, perCare: cs? Math.round(a.e/cs):null,
+    i_total:d.total, i_share:pct(d.total,a.total), i_c_pct:pct(d.c,d.total), i_w_pct:pct(d.w,d.total), i_e_pct:pct(d.e,d.total),
+    i_e55:d.e55, wj:wj, perWj: wj? Math.round(d.e55/wj):null
+  };
+}
+const M = V.map(metrics);
+const MB = Object.fromEntries(M.map(m=>[m.name,m]));
+
+const MAPKEYS = {
+  all:[{k:'e_pct',label:'長輩比例',f:p1},{k:'c_pct',label:'小孩比例',f:p1},{k:'w_pct',label:'青壯年比例',f:p1},{k:'care',label:'照顧型據點數',f:n=>n+' 處'}],
+  ind:[{k:'i_share',label:'原住民占比',f:p1},{k:'i_e_pct',label:'原住民長輩比例',f:p1},{k:'i_e55',label:'55 歲以上族人',f:n=>fmt(n)+' 人'},{k:'wj',label:'文健站數',f:n=>n+' 處'}]
+};
+
+// ---------- 提示框 ----------
+const tip=$('#tip');
+function showTip(html,ev){tip.innerHTML=html;tip.style.display='block';moveTip(ev)}
+function moveTip(ev){const x=ev.clientX, y=ev.clientY, w=tip.offsetWidth, h=tip.offsetHeight;
+  let l=x+14, t=y+14; if(l+w>innerWidth-8) l=x-w-14; if(t+h>innerHeight-8) t=y-h-14; tip.style.left=Math.max(8,l)+'px'; tip.style.top=Math.max(8,t)+'px'}
+function hideTip(){tip.style.display='none'}
+
+// ---------- 總覽 ----------
+function renderOverview(){
+  const ind = state.mode==='ind';
+  const c = ind? L.city.ind : L.city.all;
+  $('#ov-title').textContent = ind? '花蓮市原住民人口' : '花蓮市全體人口';
+  $('#ov-sub').textContent = ind
+    ? '同樣分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）；另列文健站服務的 55 歲以上族人'
+    : '把人口分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）';
+  let t = `<div class="tile"><div class="k">${ind?'原住民總人數':'總人口'}</div><div class="v">${fmt(c.total)}</div><div class="p">${ind?'占全市 '+p1(pct(c.total,L.city.all.total)):'人'}</div></div>`;
+  for(const g of GROUPS) t+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${g.name}（${g.range}）</div><div class="v">${fmt(c[g.k])}</div><div class="p">${p1(pct(c[g.k],c.total))}</div></div>`;
+  if(ind){
+    const wjN = V.reduce((s,v)=>s+wjSites(v).length,0);
+    t+=`<div class="tile"><div class="k">55 歲以上族人</div><div class="v">${fmt(c.e55)}</div><div class="p">文健站服務對象</div></div>`;
+    t+=`<div class="tile"><div class="k">文健站</div><div class="v">${wjN} 處</div><div class="p">平均每處 ${fmt(Math.round(c.e55/wjN))} 位 55+ 族人</div></div>`;
+  } else {
+    const cs = V.reduce((s,v)=>s+careSites(v).length,0);
+    t+=`<div class="tile"><div class="k">照顧型據點</div><div class="v">${cs} 處</div><div class="p">平均每處 ${fmt(Math.round(c.e/cs))} 位長輩</div></div>`;
+  }
+  $('#ov-tiles').innerHTML=t;
+  shareBar($('#ov-share'), c);
+  $('#ov-legend').innerHTML = GROUPS.map(g=>`<span><span class="sw" style="background:${g.color}"></span>${g.name} ${p1(pct(c[g.k],c.total))}</span>`).join('');
+}
+function shareBar(el,c){
+  el.innerHTML = GROUPS.map(g=>`<div style="width:${pct(c[g.k],c.total)}%;background:${g.color}" data-g="${g.k}"></div>`).join('');
+  el.setAttribute('aria-label', GROUPS.map(g=>`${g.name} ${p1(pct(c[g.k],c.total))}`).join('，'));
+  el.querySelectorAll('div').forEach(d=>{
+    const g=GROUPS.find(x=>x.k===d.dataset.g);
+    d.onmousemove=ev=>showTip(`<b>${g.name}</b>（${g.range}）<br>${fmt(c[g.k])} 人，${p1(pct(c[g.k],c.total))}`,ev);
+    d.onmouseleave=hideTip;
+  });
+}
+
+// ---------- 地圖 ----------
+const svg=$('#map');
+svg.setAttribute('viewBox',`0 0 ${G.width} ${G.height}`);
+const SEQ=['var(--seq1)','var(--seq2)','var(--seq3)','var(--seq4)','var(--seq5)'];
+function breaks(vals,isCount){
+  const s=[...vals].sort((a,b)=>a-b), u=[...new Set(s)];
+  if(isCount && u.length<=5) return {bins:u.map(x=>[x,x]), idx:x=>u.indexOf(x), count:true};
+  const q=[0.2,0.4,0.6,0.8].map(p=>s[Math.floor(p*(s.length-1))]);
+  const edges=[s[0],...q,s[s.length-1]];
+  const bins=[]; for(let i=0;i<5;i++) bins.push([edges[i],edges[i+1]]);
+  return {bins, idx:x=>{for(let i=0;i<4;i++) if(x<=q[i]) return i; return 4}, count:isCount};
+}
+function renderMapModes(){
+  const keys=MAPKEYS[state.mode];
+  if(!keys.find(k=>k.k===state.mapKey)) state.mapKey=keys[0].k;
+  $('#mapmodes').innerHTML=keys.map(k=>`<button type="button" data-k="${k.k}" aria-pressed="${k.k===state.mapKey}">${k.label}</button>`).join('');
+  $('#mapmodes').querySelectorAll('button').forEach(b=>b.onclick=()=>{state.mapKey=b.dataset.k;renderMapModes();renderMap()});
+}
+function renderMap(){
+  const km=MAPKEYS[state.mode].find(k=>k.k===state.mapKey);
+  const isCount=['care','wj','i_e55'].includes(km.k) && km.k!=='i_e55';
+  const br=breaks(M.map(m=>m[km.k]), isCount);
+  let h='';
+  for(const v of V){
+    const m=MB[v.name], i=br.idx(m[km.k]);
+    h+=`<path d="${G.paths[v.name]}" fill="${SEQ[br.count? Math.round(i*(4/Math.max(1,br.bins.length-1))):i]}" data-n="${v.name}" class="${v.name===state.village?'sel':''}"><title>${v.name}</title></path>`;
+  }
+  // 面積夠大的里才放名字，避免擠在一起
+  for(const v of V){const c=G.centers[v.name]; if(c[2]>2500 || v.name===state.village) h+=`<text x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${v.name.replace('里','')}</text>`}
+  svg.innerHTML=h;
+  svg.querySelectorAll('path').forEach(p=>{
+    const m=MB[p.dataset.n];
+    p.onmousemove=ev=>showTip(`<b>${m.name}</b><br>${km.label}：${km.f(m[km.k])}<br><span class="small">點一下看詳細資料</span>`,ev);
+    p.onmouseleave=hideTip;
+    p.onclick=()=>{hideTip();selectVillage(m.name,true)};
+  });
+  $('#scale').innerHTML=br.bins.map((b,i)=>{
+    const col=SEQ[br.count? Math.round(i*(4/Math.max(1,br.bins.length-1))):i];
+    const lab = br.count? km.f(b[0]) : (km.k==='i_e55'? `${fmt(b[0])}～${fmt(b[1])} 人` : `${b[0].toFixed(1)}～${b[1].toFixed(1)}%`);
+    return `<span><span class="sw" style="background:${col};border:1px solid var(--ring)"></span>${lab}</span>`}).join('');
+}
+
+// ---------- 查我的里 ----------
+$('#vsel').innerHTML=[...V].sort((a,b)=>a.name.localeCompare(b.name,'zh-Hant-TW-u-co-stroke')).map(v=>`<option>${v.name}</option>`).join('');
+$('#vsel').onchange=e=>selectVillage(e.target.value,false);
+function diff(v,c){const d=v-c; if(Math.abs(d)<0.05) return '<span>和全市差不多</span>';
+  return d>0?`<span class="up">比全市高 ${d.toFixed(1)} 個百分點</span>`:`<span class="down">比全市低 ${(-d).toFixed(1)} 個百分點</span>`}
+function renderVillage(){
+  const v=byName[state.village], ind=state.mode==='ind';
+  const d= ind? v.ind : v.all, cd = ind? L.city.ind : L.city.all;
+  $('#vsel').value=v.name;
+  let h=`<h3 style="font-size:1.3rem">${v.name}　${ind?'原住民 ':''}${fmt(d.total)} 人${ind?`<span class="small">（占全里 ${p1(pct(d.total,v.all.total))}）</span>`:''}</h3>`;
+  h+='<div class="tiles">';
+  for(const g of GROUPS){const vp=pct(d[g.k],d.total), cp=pct(cd[g.k],cd.total);
+    h+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${g.name}（${g.range}）</div><div class="v">${fmt(d[g.k])}</div><div class="p">${d.total?p1(vp):'—'}</div><div class="vs">${d.total?diff(vp,cp):''}</div></div>`}
+  if(ind) h+=`<div class="tile"><div class="k">55 歲以上族人</div><div class="v">${fmt(d.e55)}</div><div class="p">文健站服務對象</div></div>`;
+  h+='</div>';
+  h+=`<div class="cmp"><div class="row"><span>${v.name}</span><div class="share" id="vs-share"></div></div><div class="row"><span>全市平均</span><div class="share" id="cs-share"></div></div></div>`;
+  h+='<div class="two">';
+  // 據點
+  const sites = openSites(v), closed=v.sites.filter(s=>s.closed);
+  const showSites = ind? sites.filter(s=>s.type==='文化健康站') : sites;
+  h+=`<div><h3>${ind?'文健站':'長輩據點'}（${showSites.length} 處）</h3>`;
+  if(ind){const wj=showSites.length; h+=`<p class="small">${wj?`平均每處文健站要照顧 ${fmt(Math.round(d.e55/wj))} 位 55 歲以上族人（全市平均 ${fmt(Math.round(cd.e55/V.reduce((s,x)=>s+wjSites(x).length,0)))} 位）`:'這個里沒有文健站'}</p>`}
+  else{const cs=careSites(v).length; h+=`<p class="small">${cs?`照顧型 ${cs} 處，平均每處對應 ${fmt(Math.round(v.all.e/cs))} 位長輩（全市平均 ${fmt(Math.round(L.city.all.e/V.reduce((s,x)=>s+careSites(x).length,0)))} 位）`:'這個里沒有照顧型據點'}</p>`}
+  h+='<ul class="sites">'+showSites.map(s=>`<li><span class="tag ${s.type==='文化健康站'?'wj':s.group==='照顧型'?'care':'learn'}">${s.type==='文化健康站'?'文健站':esc(s.type)}</span>${esc(s.name)}<div class="small">${esc(s.addr)}</div></li>`).join('')+'</ul>';
+  if(!ind && closed.length) h+=`<p class="small">休站中：${closed.map(s=>esc(s.name)).join('、')}</p>`;
+  h+='</div>';
+  // 右欄：原住民族別 or 歷年
+  if(ind){
+    const tb=Object.entries(d.tribes), mx=Math.max(1,...tb.map(x=>x[1]));
+    const idn=Object.entries(d.ident).filter(x=>x[1]>0);
+    h+=`<div><h3>身分別</h3><p class="small">${idn.map(([k,n])=>`${k} ${fmt(n)} 人`).join('、')||'—'}</p><h3 style="margin-top:12px">族別</h3><div class="bars">${tb.map(([k,n])=>`<div class="b"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${n/mx*100}%"></div></div><span class="n">${fmt(n)}</span></div>`).join('')||'<p class="small">—</p>'}</div></div>`;
+  } else {
+    h+=`<div><h3>${v.name}歷年長輩比例</h3><div class="chart" id="v-trend"></div><div class="legend"><span><span class="sw" style="background:var(--old)"></span>${v.name}</span><span><span class="sw" style="background:var(--axis)"></span>全市</span></div>${H.notes[v.name]?`<p class="note">${H.notes[v.name]}</p>`:''}</div>`;
+  }
+  h+='</div>';
+  if(ind) h+=`<div style="margin-top:16px"><h3>${v.name}歷年原住民長輩比例</h3><div class="chart" id="v-trend"></div><div class="legend"><span><span class="sw" style="background:var(--old)"></span>${v.name}</span><span><span class="sw" style="background:var(--axis)"></span>全市</span></div><p class="note">109～112 年縣府沒有公布各里原住民年齡資料，所以中間斷開。${H.notes[v.name]||''}</p></div>`;
+  $('#vcard').innerHTML=h;
+  shareBar($('#vs-share'),d); shareBar($('#cs-share'),cd);
+  const key= ind?'ind':'all';
+  lineChart($('#v-trend'), [
+    {name:v.name, color:'var(--old)', pts:H.years.map(y=>{const x=y.villages[v.name][key]; return x&&x.total?pct(x.e,x.total):null})},
+    {name:'全市', color:'var(--axis)', pts:H.years.map(y=>{const x=y.city[key]; return pct(x.e,x.total)})}
+  ], {h:220, unit:'%'});
+}
+function selectVillage(n,scroll){state.village=n;save();renderMap();renderVillage();renderRank();
+  if(scroll) $('#village').scrollIntoView({behavior:'smooth',block:'start'})}
+
+// ---------- 排行榜 ----------
+const COLS={
+  all:[{k:'name',l:'里別'},{k:'total',l:'總人口',f:fmt},{k:'c_pct',l:'小孩%',f:p1},{k:'w_pct',l:'青壯年%',f:p1},{k:'e_pct',l:'長輩%',f:p1},{k:'e',l:'長輩人數',f:fmt},{k:'care',l:'照顧型據點',f:n=>n},{k:'perCare',l:'每處據點對應長輩',f:n=>n==null?'無據點':fmt(n)}],
+  ind:[{k:'name',l:'里別'},{k:'i_total',l:'原住民人數',f:fmt},{k:'i_share',l:'占全里%',f:p1},{k:'i_c_pct',l:'小孩%',f:p1},{k:'i_e_pct',l:'長輩%',f:p1},{k:'i_e55',l:'55歲以上族人',f:fmt},{k:'wj',l:'文健站',f:n=>n},{k:'perWj',l:'每處文健站對應55+',f:n=>n==null?'無文健站':fmt(n)}]
+};
+function renderRank(){
+  const cols=COLS[state.mode];
+  if(!cols.find(c=>c.k===state.sort.key)) state.sort={key:cols[4].k,dir:-1};
+  const {key,dir}=state.sort;
+  const rows=[...M].sort((a,b)=>{const x=a[key],y=b[key];
+    if(key==='name') return dir*x.localeCompare(y,'zh-Hant-TW-u-co-stroke');
+    if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1; return dir*(x-y)});
+  let h='<thead><tr><th>排名</th>'+cols.map(c=>`<th aria-sort="${c.k===key?(dir>0?'ascending':'descending'):'none'}"><button type="button" data-k="${c.k}">${c.l}${c.k===key?(dir>0?' ▲':' ▼'):''}</button></th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach((m,i)=>{h+=`<tr data-n="${m.name}" class="${m.name===state.village?'sel':''}"><td>${i+1}</td>`+cols.map(c=>`<td>${c.f?c.f(m[c.k]):m[c.k]}</td>`).join('')+'</tr>'});
+  $('#rank').innerHTML=h+'</tbody>';
+  $('#rank').querySelectorAll('th button').forEach(b=>b.onclick=()=>{const k=b.dataset.k; state.sort= state.sort.key===k?{key:k,dir:-state.sort.dir}:{key:k,dir:k==='name'?1:-1}; renderRank()});
+  $('#rank').querySelectorAll('tbody tr').forEach(tr=>tr.onclick=()=>selectVillage(tr.dataset.n,true));
+}
+
+// ---------- 折線圖（單一縱軸，%） ----------
+const XL = H.years.map(y=>y.year? String(y.year) : y.label.replace(/年(\d+)月底/,'.$1'));
+const XV = H.years.map(y=>y.year? y.year : 115+ (parseInt((y.label.match(/年(\d+)月/)||[0,12])[1])/12));
+function lineChart(el, series, o){
+  // 依容器實際寬度畫，文字不會被縮小（長輩看得清楚）
+  const W=Math.max(300, Math.round(el.clientWidth - (el.classList.contains('card')?42:0))), Hh=o.h||260, ml=48, mr=34, mt=14, mb=32;
+  const all=series.flatMap(s=>s.pts).filter(x=>x!=null);
+  let lo=Math.min(...all), hi=Math.max(...all); const pad=(hi-lo)*0.15||1; lo=Math.max(0,Math.floor(lo-pad)); hi=Math.ceil(hi+pad);
+  const x=v=>ml+(v-XV[0])/(XV[XV.length-1]-XV[0])*(W-ml-mr), y=v=>mt+(hi-v)/(hi-lo)*(Hh-mt-mb);
+  const step=(hi-lo)<=8?1:(hi-lo)<=20?2:(hi-lo)<=40?5:10;
+  let s=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${series.map(z=>z.name).join('、')}歷年變化">`;
+  for(let t=Math.ceil(lo/step)*step;t<=hi;t+=step) s+=`<line class="gl" x1="${ml}" x2="${W-mr}" y1="${y(t)}" y2="${y(t)}"/><text x="${ml-6}" y="${y(t)+4}" text-anchor="end">${t}${o.unit||''}</text>`;
+  s+=`<line class="ax" x1="${ml}" x2="${W-mr}" y1="${Hh-mb}" y2="${Hh-mb}"/>`;
+  const every = W<480?4:2;
+  XV.forEach((v,i)=>{ if((i%every===0 && i<XV.length-2)||i===XV.length-1) s+=`<text x="${x(v)}" y="${Hh-mb+18}" text-anchor="${i===XV.length-1?'end':i===0?'start':'middle'}">${XL[i]}</text>`});
+  for(const se of [...series].reverse()){
+    let d='', pen=false;
+    se.pts.forEach((p,i)=>{ if(p==null){pen=false;return} d+=(pen?'L':'M')+x(XV[i]).toFixed(1)+','+y(p).toFixed(1); pen=true});
+    s+=`<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    se.pts.forEach((p,i)=>{ if(p!=null) s+=`<circle cx="${x(XV[i])}" cy="${y(p)}" r="4" fill="${se.color}" stroke="var(--card)" stroke-width="2"/>`});
+  }
+  s+=`<line id="xh" class="ax" y1="${mt}" y2="${Hh-mb}" x1="-10" x2="-10" stroke-dasharray="3 3"/><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${Hh-mt-mb}" fill="transparent" class="hit"/></svg>`;
+  el.innerHTML=s;
+  const sv=el.querySelector('svg'), xh=sv.querySelector('#xh');
+  sv.querySelector('.hit').onmousemove=ev=>{
+    const r=sv.getBoundingClientRect(), px=(ev.clientX-r.left)*W/r.width;
+    let bi=0; XV.forEach((v,i)=>{ if(Math.abs(x(v)-px)<Math.abs(x(XV[bi])-px)) bi=i});
+    xh.setAttribute('x1',x(XV[bi])); xh.setAttribute('x2',x(XV[bi]));
+    const lab = H.years[bi].label;
+    showTip(`<b>${lab}</b><br>`+series.map(z=>`<span class="sw" style="background:${z.color};width:10px;height:10px"></span> ${z.name}：${z[ 'tip' ]? z.tip(bi): (z.pts[bi]==null?'無資料':z.pts[bi].toFixed(1)+(o.unit||''))}`).join('<br>'),ev);
+  };
+  sv.querySelector('.hit').onmouseleave=()=>{hideTip(); xh.setAttribute('x1',-10); xh.setAttribute('x2',-10)};
+}
+function renderTrend(){
+  const key= state.mode==='ind'?'ind':'all';
+  const cs=H.years.map(y=>y.city[key]);
+  $('#tr-sub').textContent = (key==='ind'?'花蓮市原住民':'花蓮市全體')+'人口中，小孩、青壯年、長輩各占幾 %（104 年起每年年底，加上最新月份）';
+  lineChart($('#trend-chart'), GROUPS.map(g=>({name:g.name, color:g.color, pts:cs.map(c=>pct(c[g.k],c.total)),
+    tip:i=>`${pct(cs[i][g.k],cs[i].total).toFixed(1)}%（${fmt(cs[i][g.k])} 人）`})), {h:300, unit:'%'});
+  const f=cs[0], l=cs[cs.length-1];
+  $('#tr-legend').innerHTML=GROUPS.map(g=>`<span><span class="sw" style="background:${g.color}"></span>${g.name}：${p1(pct(f[g.k],f.total))} → ${p1(pct(l[g.k],l.total))}</span>`).join('')+`<span>總人數：${fmt(f.total)} → ${fmt(l.total)}</span>`;
+  $('#tr-note').textContent = H.sourceNote + '。';
+}
+
+// ---------- 模式切換 ----------
+document.querySelectorAll('.top .seg button').forEach(b=>b.onclick=()=>{state.mode=b.dataset.mode;save();renderAll()});
+function renderAll(){
+  document.querySelectorAll('.top .seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
+  if(!MAPKEYS[state.mode].find(k=>k.k===state.mapKey)) state.mapKey=MAPKEYS[state.mode][0].k;
+  renderOverview(); renderMapModes(); renderMap(); renderVillage(); renderRank(); renderTrend();
+}
+$('#asof').innerHTML = `資料時間：${L.asOf}　<a href="#about" style="color:var(--accent)">資料來源與限制</a>`;
+document.querySelectorAll('.asof-text').forEach(e=>e.textContent=L.asOf);
+renderAll();
+let rz; let lastW=innerWidth;
+addEventListener('resize',()=>{clearTimeout(rz); rz=setTimeout(()=>{ if(innerWidth!==lastW){lastW=innerWidth; renderVillage(); renderTrend();} },200)});
+})();
+</script>
+</body>
+</html>
