@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>花蓮市人口地圖</title>
+<title>花蓮市據點及人口查詢</title>
 <meta name="description" content="花蓮市 44 個里的小孩、青壯年、長輩人口與據點數，資料來自花蓮縣政府民政處，每月更新。">
-<meta property="og:title" content="花蓮市人口地圖">
+<meta property="og:title" content="花蓮市據點及人口查詢">
 <meta property="og:description" content="查查你住的里：小孩、青壯年、長輩各有多少人？附原住民人口、文健站與歷年變化。資料來源：花蓮縣政府民政處。">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
@@ -171,6 +171,11 @@ body.dlg-open{overflow:hidden}
 .fuqi{margin-top:4px}
 .fuqi b{color:var(--ink)}
 .fuqi-off{margin-top:4px;color:var(--up);font-weight:700}
+details.fold{margin-top:8px}
+details.fold>summary{display:block;padding:12px 16px;min-height:52px;border:1px solid var(--axis);border-radius:10px;background:var(--surface)}
+details.fold>summary::before{content:"▶ ";font-size:.85em}
+details.fold[open]>summary{margin-bottom:12px}
+details.fold[open]>summary::before{content:"▼ "}
 ul.notes{margin:0;padding-left:1.2em}
 ul.notes li{margin:8px 0;font-size:.95rem;color:var(--ink2)}
 ul.notes b{color:var(--ink)}
@@ -178,7 +183,33 @@ ul.notes a{color:var(--accent)}
 footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--grid);color:var(--ink2);font-size:.9rem}
 footer a{color:inherit}
 .hide{display:none!important}
-@media(max-width:600px){html{font-size:17px}.tile .v{font-size:min(1.7rem,8.5vw)}.tile{padding:12px}#map text{font-size:18px}}
+.tile .k{align-items:flex-start}
+.tile .k .sw{margin-top:.35em}
+.nb{white-space:nowrap}
+.scroll-hint{display:none}
+@media(max-width:600px){
+  html{font-size:17px}
+  .tile .v{font-size:min(1.7rem,8.5vw)}
+  .tile{padding:12px}
+  /* 地圖切換鈕：兩欄方格，不要變成一大團橢圓 */
+  #mapmodes{display:grid;grid-template-columns:1fr 1fr;border-radius:12px;width:100%}
+  #mapmodes button{border-radius:9px;padding:6px 8px}
+  /* 手機上地圖縮得很小，里名看不清：只標出選到的里，其他點了才知道 */
+  #map text.o{display:none}
+  #map text.s{font-size:46px;stroke-width:9px}
+  /* 查我的里：每組一列，左邊名稱＋比較、右邊人數＋比例 */
+  #vcard .tiles{grid-template-columns:1fr}
+  #vcard .tile{display:grid;grid-template-columns:1fr auto;column-gap:10px;align-items:start}
+  #vcard .tile .v{grid-column:2;grid-row:1;text-align:right;margin-top:0}
+  #vcard .tile .p{grid-column:2;grid-row:2;text-align:right}
+  #vcard .tile .k{grid-column:1;grid-row:1}
+  #vcard .tile .vs{grid-column:1;grid-row:2}
+  /* 排行榜往右滑時，里名固定在左邊 */
+  #rank th:nth-child(2),#rank td:nth-child(2){position:sticky;left:0;background:var(--card);z-index:1;box-shadow:1px 0 0 var(--grid)}
+  #rank thead th:nth-child(2){background:var(--surface);z-index:2}
+  .scroll-hint{display:block}
+  .findbtn{font-size:1rem;padding:10px 16px;min-height:48px}
+}
 @media print{header.top{position:static}}
 </style>
 </head>
@@ -186,7 +217,7 @@ footer a{color:inherit}
 <header class="top">
   <div class="top-in">
     <div class="head-l">
-      <h1>花蓮市人口地圖</h1>
+      <h1>花蓮市據點及人口查詢</h1>
       <div class="asof" id="asof"></div>
     </div>
     <button type="button" class="findbtn" id="open-near" aria-haspopup="dialog">📍 找附近據點</button>
@@ -264,8 +295,11 @@ footer a{color:inherit}
 
   <section id="ranking">
     <h2>各里排行榜</h2>
-    <p class="sub">點欄位名稱可以排序，點一列可以看那個里的詳細資料。</p>
-    <div class="tablewrap"><table id="rank"></table></div>
+    <details class="fold" id="rank-fold">
+      <summary>點開看 44 個里的排行榜</summary>
+      <p class="sub">點欄位名稱可以排序，點一列可以看那個里的詳細資料。<span class="scroll-hint">表格可以左右滑動，看更多欄位。</span></p>
+      <div class="tablewrap"><table id="rank"></table></div>
+    </details>
   </section>
 
   <section id="trend">
@@ -278,6 +312,8 @@ footer a{color:inherit}
 
   <section id="about">
     <h2>資料說明</h2>
+    <details class="fold" id="about-fold">
+    <summary>點開看資料來源與限制</summary>
     <div class="two" style="margin-top:8px">
       <div class="card">
         <h3>資料來源</h3>
@@ -309,6 +345,7 @@ footer a{color:inherit}
         </ul>
       </div>
     </div>
+    </details>
   </section>
 
   <footer>
@@ -333,6 +370,8 @@ const GROUPS = [{k:'c',name:'小孩',range:'0～14 歲',color:'var(--kid)'},
                 {k:'w',name:'青壯年',range:'15～64 歲',color:'var(--work)'},
                 {k:'e',name:'長輩',range:'65 歲以上',color:'var(--old)'}];
 
+// 「0～14 歲」不要被拆成兩行：名稱和年齡各自整塊
+const gLabel = g=>`<span><span class="nb">${g.name}</span> <span class="nb">（${g.range}）</span></span>`;
 let state = {mode:'all', mapKey:'e_pct', village: null, sort:{key:'e_pct',dir:-1}};
 try{ const s = JSON.parse(localStorage.getItem('hlpop')||'{}'); if(s.mode) state.mode=s.mode; if(s.village && byName[s.village]) state.village=s.village; }catch(e){}
 if(!state.village) state.village = V[0].name;
@@ -385,7 +424,7 @@ function renderOverview(){
     ? '同樣分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）；另列文健站服務的 55 歲以上族人'
     : '把人口分成三組：小孩（0～14 歲）、青壯年（15～64 歲）、長輩（65 歲以上）';
   let t = `<div class="tile"><div class="k">${ind?'原住民總人數':'總人口'}</div><div class="v">${fmt(c.total)}</div><div class="p">${ind?'占全市 '+p1(pct(c.total,L.city.all.total)):'人'}</div></div>`;
-  for(const g of GROUPS) t+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${g.name}（${g.range}）</div><div class="v">${fmt(c[g.k])}</div><div class="p">${p1(pct(c[g.k],c.total))}</div></div>`;
+  for(const g of GROUPS) t+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${gLabel(g)}</div><div class="v">${fmt(c[g.k])}</div><div class="p">${p1(pct(c[g.k],c.total))}</div></div>`;
   if(ind){
     const wjN = V.reduce((s,v)=>s+wjSites(v).length,0);
     t+=`<div class="tile"><div class="k">55 歲以上族人</div><div class="v">${fmt(c.e55)}</div><div class="p">文健站服務對象</div></div>`;
@@ -438,7 +477,7 @@ function renderMap(){
     h+=`<path d="${G.paths[v.name]}" fill="${SEQ[br.count? Math.round(i*(4/Math.max(1,br.bins.length-1))):i]}" data-n="${v.name}" class="${v.name===state.village?'sel':''}"><title>${v.name}</title></path>`;
   }
   // 面積夠大的里才放名字，避免擠在一起
-  for(const v of V){const c=G.centers[v.name]; if(c[2]>2500 || v.name===state.village) h+=`<text x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${v.name.replace('里','')}</text>`}
+  for(const v of V){const c=G.centers[v.name]; if(c[2]>2500 || v.name===state.village) h+=`<text class="${v.name===state.village?'s':'o'}" x="${c[0]}" y="${c[1]}" text-anchor="middle" dominant-baseline="middle">${v.name.replace('里','')}</text>`}
   svg.innerHTML=h;
   svg.querySelectorAll('path').forEach(p=>{
     const m=MB[p.dataset.n];
@@ -464,7 +503,7 @@ function renderVillage(){
   let h=`<h3 style="font-size:1.3rem">${v.name}　${ind?'原住民 ':''}${fmt(d.total)} 人${ind?`<span class="small">（占全里 ${p1(pct(d.total,v.all.total))}）</span>`:''}</h3>`;
   h+='<div class="tiles">';
   for(const g of GROUPS){const vp=pct(d[g.k],d.total), cp=pct(cd[g.k],cd.total);
-    h+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${g.name}（${g.range}）</div><div class="v">${fmt(d[g.k])}</div><div class="p">${d.total?p1(vp):'—'}</div><div class="vs">${d.total?diff(vp,cp):''}</div></div>`}
+    h+=`<div class="tile"><div class="k"><span class="sw" style="background:${g.color}"></span>${gLabel(g)}</div><div class="v">${fmt(d[g.k])}</div><div class="p">${d.total?p1(vp):'—'}</div><div class="vs">${d.total?diff(vp,cp):''}</div></div>`}
   if(ind) h+=`<div class="tile"><div class="k">55 歲以上族人</div><div class="v">${fmt(d.e55)}</div><div class="p">文健站服務對象</div></div>`;
   h+='</div>';
   h+=`<div class="cmp"><div class="row"><span>${v.name}</span><div class="share" id="vs-share"></div></div><div class="row"><span>全市平均</span><div class="share" id="cs-share"></div></div></div>`;
@@ -673,6 +712,9 @@ function renderAll(){
   renderOverview(); renderMapModes(); renderMap(); renderVillage(); renderRank(); renderTrend();
 }
 $('#asof').innerHTML = `<span>資料時間：${L.asOf}</span>　<span><a href="#about" style="color:var(--accent)">資料來源與限制</a></span>`;
+// 「資料來源與限制」連結：先把收合的資料說明打開，再跳過去
+document.addEventListener('click',e=>{ if(e.target.closest('a[href="#about"]')) $('#about-fold').open=true; });
+if(location.hash==='#about'){ $('#about-fold').open=true; setTimeout(()=>$('#about').scrollIntoView(),0); }
 document.querySelectorAll('.asof-text').forEach(e=>e.textContent=L.asOf);
 renderAll();
 let rz; let lastW=innerWidth;
